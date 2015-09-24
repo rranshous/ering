@@ -15,10 +15,10 @@ describe EventRing::RingSet do
       it "one ring's published events are received by the other ring's nodes" do
         node1.join_ring ring1
         node2.join_ring ring2
-        expect(node1).to receive(:test).with({ success: 1 })
-        expect(node2).to receive(:test).with({ success: 1 })
+        expect(node1).to receive(:testevent).with({ success: 1 }).once
+        expect(node2).to receive(:testevent).with({ success: 1 }).once
         described_class.new(ring1, ring2)
-        ring1.publish :test, { success: 1 }
+        ring1.publish :testevent, { success: 1 }
       end
     end
   end

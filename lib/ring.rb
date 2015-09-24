@@ -11,7 +11,7 @@ module EventRing
     def publish event, data={}, sender=nil
       @members
         .reject{ |n| n == sender }
-        .each{ |n| puts "N: #{n}; e: #{event}; d: #{data}"; n.send(event, data) }
+        .each{ |n| n.send(event, data) }
     end
 
     def state
