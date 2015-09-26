@@ -9,7 +9,7 @@ module EventRing
       def initialize ring1, ring2
         @in_flight = Hash.new({})
         Relay.prepend(Filter).new(ring1, ring2, &filter_for(ring1, ring2))
-        Relay.prepend(Filter).new(ring1, ring2, &filter_for(ring2, ring1))
+        Relay.prepend(Filter).new(ring2, ring1, &filter_for(ring2, ring1))
       end
 
       private
@@ -28,10 +28,34 @@ module EventRing
       end
     end
 
-    class Sub
+    class Sub < Peer
       def initialize parent_ring, sub_ring, &allow_to_sub_ring
-        Relay.prepend(Filter).new(parent_ring, sub_ring) do |event, data|
-          allow_to_sub_ring.call event, data
+        @parent_ring, @sub_ring = parent_ring, sub_ring
+        @allow_to_sub_ring = allow_to_sub_ring
+        super
+      end
+
+      private
+
+      def filter_for source_ring, target_ring
+        in_flight = @in_flight
+        parent_ring, allow_to_sub_ring = @parent_ring, @allow_to_sub_ring
+        lambda do |event, data|
+          if in_flight[target_ring].delete([event, data])
+            false
+          else
+            if parent_ring == source_ring
+              if allow_to_sub_ring.call(event, data)
+                in_flight[source_ring][[event, data]] = :IN_FLIGHT
+                true
+              else
+                false
+              end
+            else
+              in_flight[source_ring][[event, data]] = :IN_FLIGHT
+              true
+            end
+          end
         end
       end
     end

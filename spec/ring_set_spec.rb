@@ -47,26 +47,43 @@ describe EventRing::RingSet do
         node2.join_ring ring2
         expect(node1).to receive(:testevent).with({ success: 1 }).once
         expect(node2).to receive(:testevent).with({ success: 1 }).once
+        expect(node1).to receive(:testevent).with({ success: 2 }).once
+        expect(node2).to receive(:testevent).with({ success: 2 }).once
         described_class.new(ring1, ring2)
         ring1.publish :testevent, { success: 1 }
+        ring2.publish :testevent, { success: 2 }
       end
     end
   end
 
   describe EventRing::RingSet::Sub do
     context "one ring is a sub ring" do
-      it "filters messages passed to sub ring" do
+      it "passes messages from parent to the sub ring with filter" do
         node1.join_ring ring1
         node2.join_ring ring2
-        expect(node1).to receive(:for_all).with({ success: 2 }).once
-        expect(node2).to receive(:for_all).with({ success: 2 }).once
+        expect(node1).to receive(:for_all).with({ success: 1 }).once
+        expect(node2).to receive(:for_all).with({ success: 1 }).once
         expect(node1).to receive(:for_us).with({ success: 2 }).once
-        expect(node1).to receive(:for_us).with({ success: 2 }).never
+        expect(node2).to receive(:for_us).with({ success: 2 }).never
         described_class.new(ring1, ring2) do |event, data|
           event == :for_all
         end
-        ring1.publish :for_all, { success: 2 }
+        ring1.publish :for_all, { success: 1 }
         ring1.publish :for_us, { success: 2 }
+      end
+
+      it "passes all messages from sub ring to parent" do
+        node1.join_ring ring1
+        node2.join_ring ring2
+        expect(node1).to receive(:for_all).once
+        expect(node2).to receive(:for_all).once
+        expect(node1).to receive(:for_us).once
+        expect(node2).to receive(:for_us).never
+        described_class.new(ring1, ring2) do |event, data|
+          false # pass none to sub ring
+        end
+        ring2.publish :for_all
+        ring1.publish :for_us
       end
     end
   end
