@@ -6,17 +6,24 @@ describe EventRing::Ring do
                       id: '1234', type: 'testtype', state: { 'success' => 1 }) }
   let(:node2) { double('node',
                        id: '4321', type: 'testtype', state: { 'success' => 2 }) }
+  let(:editing_node) do
+    o = Object.new
+    def o.testevent data
+      data[:success] = 2
+    end
+    o
+  end
 
   it "publishes events to all members" do
     subject.join node
-    expect(node).to receive(:test).with({success: 1})
-    subject.publish :test, success: 1
+    expect(node).to receive(:testevent).with({success: 1})
+    subject.publish :testevent, success: 1
   end
 
   it "does not publish back to sender" do
     subject.join node
-    expect(node).not_to receive(:test)
-    subject.publish :test, {success: 1}, node
+    expect(node).not_to receive(:testevent)
+    subject.publish :testevent, {success: 1}, node
   end
 
   it "collects up ring state" do
@@ -38,5 +45,12 @@ describe EventRing::Ring do
         '1234' => { 'success' => 1 }
       }
     })
+  end
+
+  it "does not allow a node to change the data it sends to other nodes" do
+    subject.join editing_node
+    subject.join node
+    expect(node).to receive(:testevent).with({success: 1})
+    subject.publish :testevent, { success: 1 }
   end
 end
