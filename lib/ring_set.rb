@@ -8,8 +8,8 @@ module EventRing
     class Peer
       def initialize ring1, ring2
         @in_flight = Hash.new({})
-        Relay.prepend(Filter).new(ring1, ring2, &filter_for(ring1, ring2))
-        Relay.prepend(Filter).new(ring2, ring1, &filter_for(ring2, ring1))
+        @relay1 = Relay.prepend(Filter).new(ring1, ring2, &filter_for(ring1, ring2))
+        @relay2 = Relay.prepend(Filter).new(ring2, ring1, &filter_for(ring2, ring1))
       end
 
       private

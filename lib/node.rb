@@ -5,6 +5,8 @@ module EventRing
 
     include AASM
 
+    aasm(:whiny_transitions => false) {}
+
     def receive event, data
       self.send event, nil, data
     end

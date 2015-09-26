@@ -9,9 +9,12 @@ module EventRing
     end
 
     def publish event, data={}, sender=nil
+      puts "#{object_id} publishing: #{event} :: #{data}"
       @members
         .reject{ |n| n == sender }
-        .each{ |n| n.send(event, data.dup) }
+        .each do |n|
+          n.send(event, data.dup)
+        end
     end
 
     def state
