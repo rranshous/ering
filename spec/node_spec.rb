@@ -27,4 +27,10 @@ describe EventRing::Node do
     expect(T1.new.type).to eq "T1"
   end
 
+  it "returns the state of itself" do
+    class T2 < EventRing::Node
+      aasm { state(:init) }
+    end
+    expect(T2.new.state).to eq({init:true})
+  end
 end

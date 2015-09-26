@@ -9,7 +9,7 @@ module EventRing
       self.send event, nil, data
     end
 
-    def to_hash
+    def state
       Hash[self.class.aasm.states.map{ |s| [s.name, send("#{s.name}?")] }]
     end
 
