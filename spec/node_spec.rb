@@ -33,4 +33,8 @@ describe EventRing::Node do
     end
     expect(T2.new.state).to eq({init:true})
   end
+
+  it "ignores messages it doesn't have hooks for" do
+    expect{ subject.made_up_event }.not_to raise_error
+  end
 end

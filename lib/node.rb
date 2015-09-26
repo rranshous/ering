@@ -13,8 +13,8 @@ module EventRing
       Hash[self.class.aasm.states.map{ |s| [s.name, send("#{s.name}?")] }]
     end
 
-    def publish event, data
-      @ring.publish self, event, data
+    def publish event, data={}
+      @ring.publish event, data, self
     end
 
     def join_ring ring
@@ -28,6 +28,10 @@ module EventRing
 
     def type
       self.class.name.split('::').last
+    end
+
+    def method_missing *args
+      # swallow things
     end
   end
 end
