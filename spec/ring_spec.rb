@@ -53,4 +53,19 @@ describe EventRing::Ring do
     expect(node).to receive(:testevent).with({success: 1})
     subject.publish :testevent, { success: 1 }
   end
+
+  it 'defers next publish until current fanout is complete' do
+    publishing_node = Object.new
+    def publishing_node.testevent data
+      puts "adding"
+      @ring.publish :secondevent, {}, self
+    end
+    publishing_node.instance_variable_set(:@ring, subject)
+    subject.join publishing_node
+    subject.join node
+    expect(publishing_node).to receive(:testevent).and_call_original.ordered
+    expect(node).to receive(:testevent).and_return(nil).ordered
+    expect(node).to receive(:secondevent).and_return(nil).ordered
+    subject.publish :testevent
+  end
 end
