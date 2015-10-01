@@ -39,4 +39,7 @@ EventRing::RingSet::Sub.new(world_ring, player2_ring) do |event, data|
   true # allow all throught for now
 end
 
-battle.start_game
+world_ring.publish :game_initializing
+puts "battle initialized: #{battle.initialized?}"
+world_ring.publish :game_starting
+world_ring.publish :round_starting
